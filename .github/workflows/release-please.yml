@@ -26,9 +26,12 @@ jobs:
       - uses: actions/setup-node@v4
         if: ${{ steps.release.outputs.release_created }}
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
+
+      - run: npm install -g npm@latest
+        if: ${{ steps.release.outputs.release_created }}
 
       - run: npm ci
         if: ${{ steps.release.outputs.release_created }}
@@ -44,5 +47,3 @@ jobs:
 
       - run: npm publish --access public --provenance
         if: ${{ steps.release.outputs.release_created }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
