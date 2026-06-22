@@ -259,6 +259,7 @@ async function run(): Promise<void> {
     try {
       const response = await forwardMessage(message, config, state);
       if (response) {
+        logJsonRpcError(response);
         stdout.write(`${JSON.stringify(response)}\n`);
       }
     } catch (error) {
@@ -268,10 +269,49 @@ async function run(): Promise<void> {
         error instanceof Error ? error.message : "Remote MCP request failed"
       );
       if (response) {
+        logJsonRpcError(response);
         stdout.write(`${JSON.stringify(response)}\n`);
       }
     }
   }
+}
+
+function logJsonRpcError(message: JsonRpcMessage): void {
+  if (!("error" in message) || message.error === undefined) {
+    return;
+  }
+
+  stderr.write(`Remapdb MCP error: ${errorSummary(message.error)}\n`);
+}
+
+function errorSummary(error: unknown): string {
+  if (typeof error === "object" && error !== null) {
+    const message = readStringProperty(error, "message");
+    const data = readProperty(error, "data");
+    const remoteMessage =
+      typeof data === "object" && data !== null
+        ? readStringProperty(readProperty(data, "error"), "message")
+        : undefined;
+
+    return remoteMessage ?? message ?? JSON.stringify(error);
+  }
+
+  return String(error);
+}
+
+function readProperty(value: unknown, property: string): unknown {
+  if (typeof value !== "object" || value === null || !(property in value)) {
+    return undefined;
+  }
+
+  return (value as Record<string, unknown>)[property];
+}
+
+function readStringProperty(value: unknown, property: string): string | undefined {
+  const propertyValue = readProperty(value, property);
+  return typeof propertyValue === "string" && propertyValue.trim() !== ""
+    ? propertyValue
+    : undefined;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

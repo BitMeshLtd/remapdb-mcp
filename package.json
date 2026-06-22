@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
+    "mcp": "./dist/index.js",
     "remapdb-mcp": "./dist/index.js"
   },
   "publishConfig": {
