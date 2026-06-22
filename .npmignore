@@ -1,0 +1,6 @@
+src/
+test/
+*.tsbuildinfo
+.env
+node_modules/
+coverage/
