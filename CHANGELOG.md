@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/BitMeshLtd/remapdb-mcp/compare/v0.2.0...v0.3.0) (2026-06-22)
+
+
+### Features
+
+* add error logging to MCP bridge with new mcp binary alias ([09347a3](https://github.com/BitMeshLtd/remapdb-mcp/commit/09347a302eb3c8d7284665c78ab59c7f9aa319ca))
+
 ## [0.2.0](https://github.com/BitMeshLtd/remapdb-mcp/compare/v0.1.0...v0.2.0) (2026-06-22)
 
 
