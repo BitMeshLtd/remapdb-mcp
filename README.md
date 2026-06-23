@@ -34,7 +34,7 @@ Some MCP clients can connect to remote HTTP MCP servers directly. Others only su
 
 - Node.js 20 or newer.
 - A Remapdb API key.
-- An active Remapdb MAX plan for MCP access.
+- An active Remapdb API or MAX plan for MCP access.
 - The API key must have `vdb_read` scope and API access enabled.
 
 You can manage API credentials from the Remapdb app:
@@ -207,7 +207,7 @@ Confirm the value matches the API key shown in the Remapdb app. If credentials w
 
 ### MCP Access Is Not Available
 
-MCP access requires the MAX plan. API access must also be enabled and active for the subscription.
+MCP access requires the MAX or API plan. API access must also be enabled and active for the subscription.
 
 If your MCP client reports that handshaking failed during `initialize`, test the bridge manually. A response like this means the package started correctly, but the Remapdb subscription/API key is not allowed to use MCP yet:
 
@@ -219,7 +219,7 @@ If your MCP client reports that handshaking failed during `initialize`, test the
 }
 ```
 
-Enable API access for the subscription, switch to a MAX plan, or use a key from an account that already has MCP access.
+Enable API access for the subscription, switch to an API or MAX plan, or use a key from an account that already has MCP access.
 
 ### Not Enough Permissions
 
