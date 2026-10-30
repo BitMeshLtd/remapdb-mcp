@@ -146,7 +146,7 @@ REMAPDB_API_KEY = "your_remapdb_api_key"
 
 ## Available Tools
 
-The hosted Remapdb MCP server exposes read-only tools.
+The hosted Remapdb MCP server exposes catalog tools and entitled UK VRM lookup tools. Registration lookups can consume shared lookup balance.
 
 | Tool | What it does |
 | --- | --- |
@@ -157,7 +157,15 @@ The hosted Remapdb MCP server exposes read-only tools.
 | `list_generations` | Lists generations for a model. |
 | `list_engines` | Lists engines for a generation. |
 | `get_engine` | Gets detailed engine and tuning information. |
-| `get_subscription` | Shows API key scopes, call limit, and subscription access state. |
+| `get_subscription` | Shows API key scopes, call limit, MCP/UK VRM access and configured monthly lookup allowance. |
+| `lookup_uk_vrm` | Looks up a UK registration, vehicle details and available tuning data; requires VRM entitlement and an idempotency key. |
+| `get_uk_vrm_usage` | Shows the shared lookup allowance, usage, remaining balance and reset time without consuming a lookup. |
+
+UK VRM tools require an active **API** or **MAX** full API subscription and `subscription.uk_vrm_access=true`. Trial API credentials never grant VRM API or MCP access, including trials on paid Plus/Pro widget plans.
+
+`lookup_uk_vrm` takes `vrm`, a required `idempotency_key` (8–128 letters, digits, `.`, `_`, `:`, or `-`), and optional `language`. Generate a unique key per lookup and reuse it for retries. A successful uncached lookup consumes one included lookup, or one purchased lookup after the monthly allowance. Cached results consume nothing. REST, MCP and widgets share the same balance and account idempotency namespace. Do not automatically retry a failed lookup with a new key.
+
+`get_subscription` exposes `mcp_access`, `uk_vrm_access`, `uk_vrm_limit` and `uk_vrm_remaining` inside `subscription`. `uk_vrm_limit` includes the current period allowance and unspent top-ups; `uk_vrm_remaining` is the spendable balance after usage and reservations. Use `get_uk_vrm_usage` for the breakdown and reset time. Entitlements are rechecked on every request, including existing MCP sessions.
 
 Several tools accept an optional `language` argument. If it is not provided, Remapdb uses the request `Accept-Language` value where available, or the API default language.
 

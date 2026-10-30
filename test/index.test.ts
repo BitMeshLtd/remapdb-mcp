@@ -31,6 +31,36 @@ describe("parseArgs", () => {
 });
 
 describe("forwardMessage", () => {
+  it("preserves VRM idempotency keys and shared-balance responses", async () => {
+    const message = { jsonrpc: "2.0", id: 12, method: "tools/call", params: {
+      name: "lookup_uk_vrm", arguments: { vrm: "AB12CDE", idempotency_key: "lookup-fixture-123" }
+    }};
+    const result = { jsonrpc: "2.0", id: 12, result: { content: [], structuredContent: {
+      status: "estimated", consumption: "none", usage: { included_remaining: 299 }
+    }}};
+    let calls = 0;
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      calls++;
+      expect(JSON.parse(String(init?.body))).toEqual(message);
+      return new Response(JSON.stringify(result), { headers: { "content-type": "application/json" } });
+    };
+    expect(await forwardMessage(message, { apiKey: "fixture-key", url: "https://example.test/mcp" }, {}, fetchImpl)).toEqual(result);
+    expect(calls).toBe(1);
+  });
+
+  it("does not retry or replace an idempotency key after a denied VRM tool call", async () => {
+    let calls = 0;
+    const denied = { jsonrpc: "2.0", id: 13, result: { isError: true, content: [{ type: "text", text: "vrm_access_denied" }] }};
+    const fetchImpl: typeof fetch = async () => {
+      calls++;
+      return new Response(JSON.stringify(denied), { headers: { "content-type": "application/json" } });
+    };
+    expect(await forwardMessage({ jsonrpc: "2.0", id: 13, method: "tools/call", params: {
+      name: "lookup_uk_vrm", arguments: { vrm: "AB12CDE", idempotency_key: "lookup-fixture-123" }
+    }}, { apiKey: "fixture-key", url: "https://example.test/mcp" }, {}, fetchImpl)).toEqual(denied);
+    expect(calls).toBe(1);
+  });
+
   it("stores the remote MCP session id and sends it on later requests", async () => {
     const requests: RequestInit[] = [];
     const fetchMock = async (_url: string | URL | Request, init?: RequestInit) => {
