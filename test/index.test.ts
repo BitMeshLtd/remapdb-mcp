@@ -140,3 +140,34 @@ describe("forwardMessage", () => {
     ).resolves.toEqual(remoteError);
   });
 });
+
+
+describe("DTC and ECU observation forwarding", () => {
+  it.each([
+    { name: "lookup_dtc", arguments: { code: "P1000", manufacturer: "FORD" } },
+    { name: "lookup_dtc_codes", arguments: { codes: ["P0300", "U0001"] } },
+    { name: "scan_ecu_maps", arguments: { file_id: "file-id", limit: 20, idempotency_key: "same-on-retry" } },
+    { name: "get_ecu_map_grid", arguments: { file_id: "file-id", scan_job_id: "scan-id", map_id: "map-id", idempotency_key: "grid-request" } },
+    { name: "get_ecu_result", arguments: { job_id: "job-id", details: true } }
+  ])("forwards $name without rewriting IDs or arguments", async (params) => {
+    const request = { jsonrpc: "2.0", id: 30, method: "tools/call", params };
+    const response = { jsonrpc: "2.0", id: 30, result: { structuredContent: { job_id: "job-id", status: "queued" }, content: [] } };
+    let calls = 0;
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      calls++;
+      expect(JSON.parse(String(init?.body))).toEqual(request);
+      expect(init?.headers).toMatchObject({ Authorization: "Bearer fixture-key", "Mcp-Session-Id": "fixture-session" });
+      return new Response(JSON.stringify(response), { headers: { "content-type": "application/json" } });
+    };
+    expect(await forwardMessage(request, { apiKey: "fixture-key", url: "http://localhost:8082/mcp" }, { sessionId: "fixture-session" }, fetchImpl)).toEqual(response);
+    expect(calls).toBe(1);
+  });
+  it("preserves denied ECU calls without automatic retries", async () => {
+    let calls = 0;
+    const response = { jsonrpc: "2.0", id: 31, result: { isError: true, content: [{ type: "text", text: "scope_required" }] } };
+    const fetchImpl: typeof fetch = async () => { calls++; return new Response(JSON.stringify(response)); };
+    expect(await forwardMessage({ jsonrpc: "2.0", id: 31, method: "tools/call", params: { name: "identify_ecu", arguments: { file_id: "file-id", idempotency_key: "keep-this" } } },
+      { apiKey: "fixture-key", url: "http://localhost:8082/mcp" }, {}, fetchImpl)).toEqual(response);
+    expect(calls).toBe(1);
+  });
+});

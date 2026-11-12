@@ -45,6 +45,8 @@ You can manage API credentials from the Remapdb app:
 
 Keep your API key out of source control. Store it in your MCP client configuration, shell environment, or secret manager.
 
+In Remapdb, open **API → API keys** to create a named key for this MCP client (up to 10 active keys per account). Any eligible key works with this bridge; no bridge update is required for multiple keys. All keys share the account subscription, request limit and lookup/ECU allowances. Renaming a key does not interrupt it. Revoking or regenerating it invalidates subsequent MCP requests, including existing sessions; update `REMAPDB_API_KEY` and restart the bridge after rotation. Other keys remain usable.
+
 ## Quick Start
 
 Run the bridge with `npx`:
@@ -146,7 +148,7 @@ REMAPDB_API_KEY = "your_remapdb_api_key"
 
 ## Available Tools
 
-The hosted Remapdb MCP server exposes catalog tools and entitled UK VRM lookup tools. Registration lookups can consume shared lookup balance.
+The hosted Remapdb MCP server exposes catalog, DTC, entitled UK VRM and ECU observation tools for active API/MAX subscriptions. Registration lookups can consume shared lookup balance. Tool availability follows the backend deployment; the bridge forwards tool discovery dynamically.
 
 | Tool | What it does |
 | --- | --- |
@@ -170,6 +172,48 @@ UK VRM tools require an active **API** or **MAX** full API subscription and `sub
 Several tools accept an optional `language` argument. If it is not provided, Remapdb uses the request `Accept-Language` value where available, or the API default language.
 
 Search and manufacturer listing tools support pagination with `cursor` and `limit`. Limits must be between `1` and `100`.
+
+
+## DTC and ECU tools
+
+DTC lookup is included on every active API/MAX full API subscription with `vdb_read`. It is synchronous, uses no lookup credits and needs no ECU enablement.
+
+| Tool | Purpose |
+|---|---|
+| `lookup_dtc` | One code, optional manufacturer token. |
+| `lookup_dtc_codes` | 1–20 codes in input order; unknown codes return `found:false`. |
+| `search_dtc_codes` | Search/browse by query, manufacturer, type and scope; limit 1–100 and offset pagination. |
+| `list_dtc_manufacturers` | Available manufacturer tokens and counts. |
+
+Use tokens from `list_dtc_manufacturers`, such as `FORD`. With context, lookup returns that maker plus generic references. Without it, meanings remain separate. A generic reference does not prove universal vehicle applicability. Definitions are not diagnoses, are returned as stored and are not translated.
+
+ECU observation and DTC lookup are included with active API/MAX subscriptions using the standard `vdb_read` API key. No separate account activation or additional ECU scopes are needed for MCP. Restricted REST keys may still use `ecu_observe` for submission/deletion and `ecu_read` for results.
+
+| Tool | Purpose |
+|---|---|
+| `get_ecu_capabilities` | Operations, limits, retention. |
+| `identify_ecu` | Queue identification; returns a job ID. |
+| `inspect_ecu` | Queue combined observations. |
+| `scan_ecu_maps` | Queue candidate-map scan. |
+| `get_ecu_map_grid` | Queue extraction of a detected map's raw cells. |
+| `compare_ecu_files` | Queue byte and map comparison of two uploads. |
+| `get_ecu_job` | Poll status and compact result. |
+| `get_ecu_result` | Compact result by default; `details:true` for maps, grids and comparison details. |
+| `delete_ecu_file` | Explicitly requested deletion of an uploaded file. |
+
+Upload through REST `POST /v2/ecu/files` first. The bridge accepts server-issued file IDs, not local paths, URLs or binary data. Reuse the same `idempotency_key` on retry; REST and MCP share the namespace. Poll at least 2 seconds apart. Completed identification includes confidence levels; unknown identity remains unknown. Observation does not modify firmware or establish stock/tuned status.
+
+For a grid:
+
+1. Submit `scan_ecu_maps` with the uploaded `file_id` and a unique `idempotency_key`.
+2. Poll `get_ecu_job` using its returned `job_id` until completed.
+3. Call `get_ecu_result` with that job ID and `details:true`; choose a `maps.items[].map_id`.
+4. Submit `get_ecu_map_grid` with the original `file_id`, scan's job ID as `scan_job_id`, selected `map_id`, and a new idempotency key.
+5. Poll the new job, then retrieve its details for `grid.values`. Units/scaling can be unknown.
+
+### Testing against the local API
+
+Build the bridge with `npm run build`, then configure your MCP client to run `node /absolute/path/remapdb-mcp/dist/index.js` with `REMAPDB_MCP_URL=http://localhost:8082/mcp` and your local `REMAPDB_API_KEY`. Reconnect after changing backend tool registrations. The production URL remains the default. No bridge runtime change is necessary for these new tools; the backend must be deployed before hosted clients see them.
 
 ## Example Prompts
 
