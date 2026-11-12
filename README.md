@@ -45,6 +45,8 @@ You can manage API credentials from the Remapdb app:
 
 Keep your API key out of source control. Store it in your MCP client configuration, shell environment, or secret manager.
 
+In Remapdb, open **API → API keys** to create a named key for this MCP client (up to 10 active keys per account). Any eligible key works with this bridge; no bridge update is required for multiple keys. All keys share the account subscription, request limit and lookup/ECU allowances. Renaming a key does not interrupt it. Revoking or regenerating it invalidates subsequent MCP requests, including existing sessions; update `REMAPDB_API_KEY` and restart the bridge after rotation. Other keys remain usable.
+
 ## Quick Start
 
 Run the bridge with `npx`:
@@ -146,7 +148,7 @@ REMAPDB_API_KEY = "your_remapdb_api_key"
 
 ## Available Tools
 
-The hosted Remapdb MCP server exposes catalog, DTC, entitled UK VRM and enabled ECU observation tools. Registration lookups can consume shared lookup balance. Tool availability follows the backend deployment; the bridge forwards tool discovery dynamically.
+The hosted Remapdb MCP server exposes catalog, DTC, entitled UK VRM and ECU observation tools for active API/MAX subscriptions. Registration lookups can consume shared lookup balance. Tool availability follows the backend deployment; the bridge forwards tool discovery dynamically.
 
 | Tool | What it does |
 | --- | --- |
@@ -185,7 +187,7 @@ DTC lookup is included on every active API/MAX full API subscription with `vdb_r
 
 Use tokens from `list_dtc_manufacturers`, such as `FORD`. With context, lookup returns that maker plus generic references. Without it, meanings remain separate. A generic reference does not prove universal vehicle applicability. Definitions are not diagnoses, are returned as stored and are not translated.
 
-ECU observation additionally requires enabled ECU access. Submission/deletion requires `ecu_observe`; reading requires `ecu_read`. MCP also requires `vdb_read` for the connection.
+ECU observation and DTC lookup are included with active API/MAX subscriptions using the standard `vdb_read` API key. No separate account activation or additional ECU scopes are needed for MCP. Restricted REST keys may still use `ecu_observe` for submission/deletion and `ecu_read` for results.
 
 | Tool | Purpose |
 |---|---|
