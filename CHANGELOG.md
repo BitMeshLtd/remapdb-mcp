@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/BitMeshLtd/remapdb-mcp/compare/v0.3.0...v0.4.0) (2026-11-12)
+
+
+### Features
+
+* add UK VRM lookup tools and subscription usage tracking to documentation and tests ([0cccb4b](https://github.com/BitMeshLtd/remapdb-mcp/commit/0cccb4bad9678201a89d917f65b5d7668abdca6c))
+* ecu dtc observation ([#4](https://github.com/BitMeshLtd/remapdb-mcp/issues/4)) ([e358263](https://github.com/BitMeshLtd/remapdb-mcp/commit/e35826319990a206e72a548b7129edfb7cce1d74))
+
 ## [0.3.0](https://github.com/BitMeshLtd/remapdb-mcp/compare/v0.2.0...v0.3.0) (2026-06-22)
 
 
