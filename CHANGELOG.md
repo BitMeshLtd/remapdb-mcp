@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/BitMeshLtd/remapdb-mcp/compare/v0.4.0...v0.4.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* declare repository for npm provenance ([#5](https://github.com/BitMeshLtd/remapdb-mcp/issues/5)) ([0635cdf](https://github.com/BitMeshLtd/remapdb-mcp/commit/0635cdf5fb005e2b847153063b105ba809abcacc))
+
 ## [0.4.0](https://github.com/BitMeshLtd/remapdb-mcp/compare/v0.3.0...v0.4.0) (2026-11-12)
 
 

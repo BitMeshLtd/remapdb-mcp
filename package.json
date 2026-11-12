@@ -1,6 +1,6 @@
 {
   "name": "@remapdb/mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Stdio wrapper for the hosted Remapdb MCP server.",
   "license": "MIT",
   "repository": {
